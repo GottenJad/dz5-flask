@@ -1,4 +1,4 @@
-# роуты апи с полным набором CRUD
+
 
 from flask import Blueprint, jsonify, request
 
@@ -8,12 +8,10 @@ from .models import Task
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
-# блюпринт гета проверки на живучесть
 @api_bp.get("/health")
 def healthcheck():
     return jsonify({"status": "ok"})
 
-# список задач, сначала редис потом постгря
 @api_bp.get("/tasks")
 def list_tasks():
     cached_payload = get_cached_tasks_list()
@@ -25,7 +23,6 @@ def list_tasks():
     set_cached_tasks_list(serialized_tasks)
     return jsonify({"source": "postgres", "items": serialized_tasks})
 
-# создание задачи и потом сразу инвалидация кеша списком
 @api_bp.post("/tasks")
 def create_task():
     payload = request.get_json(silent=True) or {}
@@ -41,13 +38,11 @@ def create_task():
     invalidate_tasks_cache()
     return jsonify(task.to_dict()), 201
 
-# для чтения одной задачи по id
 @api_bp.get("/tasks/<int:task_id>")
 def get_task(task_id: int):
     task = db.get_or_404(Task, task_id)
     return jsonify(task.to_dict())
 
-# для обновления задачи целиком
 @api_bp.put("/tasks/<int:task_id>")
 def update_task(task_id: int):
     task = db.get_or_404(Task, task_id)
@@ -62,7 +57,6 @@ def update_task(task_id: int):
     if "description" in payload:
         task.description = (payload.get("description") or "").strip()
     
-    # поддержка несколько вариантов ключа
     done_value = None
     for possible_key in ("is_done", "is done", "isDone"):
         if possible_key in payload:
@@ -75,8 +69,6 @@ def update_task(task_id: int):
     db.session.commit()
     invalidate_tasks_cache()
     return jsonify(task.to_dict())
-
-# удаление задачи и чистка кеша
 @api_bp.delete("/tasks/<int:task_id>")
 def delete_task(task_id: int):
     task = db.get_or_404(Task, task_id)

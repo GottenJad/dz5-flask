@@ -1,9 +1,6 @@
-# модели бд
-
 from datetime import datetime, timezone
 from .extensions import db
 
-# модель задачи для наглядного полного CRUD
 class Task(db.Model):
 
     __tablename__ = "tasks"
@@ -13,7 +10,6 @@ class Task(db.Model):
     is_done = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     def to_dict(self) -> dict:
-        # преобразуем модель в dict, чтобы отдать ответ json
         return {
             "id": self.id, 
             "title": self.title,
